@@ -3,15 +3,9 @@
 # A program I wrote to finally convert all of those old "AQXZ.mp3" files
 # retrieved from my old 3rd gen ipod to their actual name
 
-# Instructions of operations, comment out all but 'collectmus()' in the 
+# Instructions of operations
 # directory containing all the 'F##' folders which contain the music files
-# then uncomment everything and comment out 'collectmus()' and move program
-# to the directory 'tempunsorted' and run the rest of it
-# NOTE: The above may not be true. test later, but os.chdir() seems to be
-# the trick to getting this all done in one step
-
-# NOTE: The following were run in stages, to be done all at once, this must
-# be edited further
+#
 # non-standard libraries and programs required:
 #	 mutagen		-  sudo pip3 install mutagen
 #	 avconv			-  sudo apt-get install libav-tools
@@ -27,9 +21,7 @@ from mutagen.easyid3 import EasyID3
 def collectmus():
 	print("\n collecting music files...?")
 	
-	os.system("mkdir tempunsorted")
-	os.system("mkdir tempunsorted/oldm4a")
-
+	os.system("mkdir -p tempunsorted/oldm4a")
 	x = [os.path.join(r,file) for r,d,f in os.walk(".") for file in f]
 	for i in x:
 		if re.match(r'^[./]{2}[/F,0-9]{4}[A-Z]{4}',i):
@@ -116,13 +108,22 @@ def sortbyartist():
 			os.system(command)
 		except:
 			errorlist2.append(i)
+	if len(errorlist1) != 0:
+		print("the following songs have no artist listed:")
+		for song in errorlist1:
+			print(song)
+	if len(errorlist2) != 0:
+		print("Error moving the following songs into their artist folders:")
+		for song in errorlist2:
+			print(song)
+
 
 
 
 collectmus()
 
-os.system("cd tempunsorted")
-# Can't get this directory change to work, so this has to be done in 2 steps :/
+os.chdir('tempunsorted')
+
 m4a2mp3()
 
 titlechange()
@@ -131,4 +132,3 @@ sortbyartist()
 
 
 print("\n\nDone!")
-
