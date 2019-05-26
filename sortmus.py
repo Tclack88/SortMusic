@@ -7,9 +7,10 @@
 # directory containing all the 'F##' folders which contain the music files
 #
 # non-standard libraries and programs required:
-#	 mutagen		-  sudo pip3 install mutagen
-#	 avconv			-  sudo apt-get install libav-tools
-
+#        mutagen                -  sudo pip3 install mutagen
+#        avconv                 -  sudo apt-get install libav-tools
+#        ffmpeg                 -  sudo apt install ffmpeg
+#   avconv is deprecated for later versions of ubuntu, so ffmpeg replaces it
 import os
 import re
 from mutagen.easyid3 import EasyID3
@@ -19,15 +20,15 @@ from mutagen.easyid3 import EasyID3
 
 
 def collectmus():
-	print("\n collecting music files...?")
-	
-	os.system("mkdir -p tempunsorted/oldm4a")
-	x = [os.path.join(r,file) for r,d,f in os.walk(".") for file in f]
-	for i in x:
-		if re.match(r'^[./]{2}[/F,0-9]{4}[A-Z]{4}',i):
-			command = "mv "+i+" tempunsorted"
-			os.system(command)
-	print("\nMusic files moved to folder 'tempunsorted'")
+        print("\n collecting music files...?")
+        
+        os.system("mkdir -p tempunsorted/oldm4a")
+        x = [os.path.join(r,file) for r,d,f in os.walk(".") for file in f]
+        for i in x:
+                if re.match(r'^[./]{2}[/F,0-9]{4}[A-Z]{4}',i):
+                        command = "mv "+i+" tempunsorted"
+                        os.system(command)
+        print("\nMusic files moved to folder 'tempunsorted'")
 
 
 
@@ -35,22 +36,23 @@ def collectmus():
 
 # convert any m4a files to mp3 files so the id3 tags will be read properly
 def m4a2mp3():
-	print("\nconverting all m4a files to mp3...")
-	quote = """ " """
-	q = quote[1]
-	x = [file for r,d,f in os.walk(".") for file in f]
-	filesremoved = []
-	for i in x:
-		if i.endswith(".m4a"):
-			command = "avconv -i "+q+i+q+' '+q+i[:-4]+".mp3"+q
-			os.system(command)
-			filesremoved.append(i)
-			command2 = "mv "+i+" oldm4a"
-			os.system(command2)
-	print("The following files were converted to mp3:")
-	for i in filesremoved:
-		print(i)
-	print("\nConversion Complete, m4a files moved to oldm4a folder")
+        print("\nconverting all m4a files to mp3...")
+        quote = """ " """
+        q = quote[1]
+        x = [file for r,d,f in os.walk(".") for file in f]
+        filesremoved = []
+        for i in x:
+                if i.endswith(".m4a"):
+                        #command = "avconv -i "+q+i+q+' '+q+i[:-4]+".mp3"+q
+                        altcommand = "ffmpeg -i"+q+i+q+' '+q[:-4]+".mp3"+q
+                        os.system(altcommand)
+                        filesremoved.append(i)
+                        command2 = "mv "+i+" oldm4a"
+                        os.system(command2)
+        print("The following files were converted to mp3:")
+        for i in filesremoved:
+                print(i)
+        print("\nConversion Complete, m4a files moved to oldm4a folder")
 
 
 
@@ -59,21 +61,20 @@ def m4a2mp3():
 
 # the main function which changes the name 
 def titlechange():
-	thelist = os.listdir()
-	errorlist = []
-	for i in thelist:
-		if re.match(r'^[A-Z]{4}[.mp3]{4}',i):
-			try:
-				song = EasyID3(i)
-				title = song['title']
-				newtitle = title[0]+'.mp3'
-				command = """mv %s "%s" """ % (i,newtitle)
-				os.system(command)
-				#print(command)
-			except:
-				errorlist.append(i)
+        thelist = os.listdir()
+        errorlist = []
+        for i in thelist:
+                if re.match(r'^[A-Z]{4}[.mp3]{4}',i):
+                        try:
+                                song = EasyID3(i)
+                                title = song['title']
+                                newtitle = title[0]+'.mp3'
+                                command = """mv %s "%s" """ % (i,newtitle)
+                                os.system(command)
+                        except:
+                                errorlist.append(i)
 
-	return errorlist
+        return errorlist
 
 
 
@@ -81,42 +82,33 @@ def titlechange():
 
 
 def sortbyartist():
-	quote = """ " """
-	q = quote[1]	
-	artistlist = []
-	errorlist1 = []
-	errorlist2 = []
-	thelist = os.listdir()
-	for i in thelist:
-		try:
-			song = EasyID3(i)
-			artist = song['artist']
-			if artist not in artistlist:
-				artistlist.append(artist)
-				
-		except:
-			errorlist1.append(i)
+        quote = """ " """
+        q = quote[1]    
+        artistlist = []
+        errorlist1 = []
+        errorlist2 = []
+        thelist = os.listdir()
+        for i in thelist:
+                try:
+                        song = EasyID3(i)
+                        artist = song['artist']
+                        if artist not in artistlist:
+                                artistlist.append(artist)
+                                
+                except:
+                        errorlist1.append(i)
 
-	for i in artistlist:
-		command = "mkdir "+q+i[0]+q
-		os.system(command)
-	for i in thelist:
-		try:
-			song = EasyID3(i)
-			artist = song['artist']
-			command = "mv "+q+i+q+" "+q+artist[0]+q
-			os.system(command)
-		except:
-			errorlist2.append(i)
-	if len(errorlist1) != 0:
-		print("the following songs have no artist listed:")
-		for song in errorlist1:
-			print(song)
-	if len(errorlist2) != 0:
-		print("Error moving the following songs into their artist folders:")
-		for song in errorlist2:
-			print(song)
-
+        for i in artistlist:
+                command = "mkdir "+q+i[0]+q
+                os.system(command)
+        for i in thelist:
+                try:
+                        song = EasyID3(i)
+                        artist = song['artist']
+                        command = "mv "+q+i+q+" "+q+artist[0]+q
+                        os.system(command)
+                except:
+                        errorlist2.append(i)
 
 
 
