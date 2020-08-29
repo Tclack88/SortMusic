@@ -44,7 +44,7 @@ def m4a2mp3():
         for i in x:
                 if i.endswith(".m4a"):
                         #command = "avconv -i "+q+i+q+' '+q+i[:-4]+".mp3"+q
-                        altcommand = "ffmpeg -i"+q+i+q+' '+q[:-4]+".mp3"+q
+                        altcommand = "ffmpeg -i "+q+i+q+' '+q+i[:-4]+".mp3"+q
                         os.system(altcommand)
                         filesremoved.append(i)
                         command2 = "mv "+i+" oldm4a"
