@@ -50,3 +50,5 @@ Download sortmus.exe then place it in your directory containing all the `F##` fo
 
 ### 3
 Double click the program, it should do everything for you. Note: Command prompt will pop up showing the progress and stages, unfortunately, it will close right after so you can't read it. It's really for me when I was developing, but if you're curious and want to see the output just in case something goes wrong, you can open up your command prompt, navigate to the correct location and run `sortmus.exe` from there. If you're feeling adventurous, [here's some instructions](https://www.wikihow.com/Run-an-EXE-File-From-Command-Prompt) for navigating the command prompt.
+
+![Windows sorting](https://github.com/Tclack88/blog/blob/gh-pages/assets/music-sort/sortmus_windows_demo.gif?raw=true)
