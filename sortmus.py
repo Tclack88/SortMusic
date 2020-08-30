@@ -3,6 +3,13 @@
 # A program I wrote to finally convert all of those old "AQXZ.mp3" files
 # retrieved from my old 3rd gen ipod to their actual name
 
+# 30 Aug 2020: update -- Code is now OS neutral. 
+# For windows without python installed/ for non-programers, an executable has 
+# been provided which has all it needs except for ffmpeg which will need to be 
+# downloaded separately and added to the PATH.
+# one set of instructions I found from a cursory google search: 
+# https://www.thewindowsclub.com/how-to-install-ffmpeg-on-windows-10
+
 # Instructions of operations
 # directory containing all the 'F##' folders which contain the music files
 #
@@ -11,8 +18,10 @@
 #        avconv                 -  sudo apt-get install libav-tools
 #        ffmpeg                 -  sudo apt install ffmpeg
 #   avconv is deprecated for later versions of ubuntu, so ffmpeg replaces it
+# ***For Windows users, ffmpeg must be installed and added to PATH***
 import os
 import re
+import shutil
 from mutagen.easyid3 import EasyID3
 
 
@@ -22,12 +31,12 @@ from mutagen.easyid3 import EasyID3
 def collectmus():
         print("\n collecting music files...?")
         
-        os.system("mkdir -p tempunsorted/oldm4a")
+        os.makedirs("tempunsorted/oldm4a")
         x = [os.path.join(r,file) for r,d,f in os.walk(".") for file in f]
         for i in x:
-                if re.match(r'^[./]{2}[/F,0-9]{4}[A-Z]{4}',i):
-                        command = "mv "+i+" tempunsorted"
-                        os.system(command)
+                head, tail = os.path.split(i)
+                if re.match(r'^[A-Z]{4}',tail):
+                        os.rename(i,os.path.join('tempunsorted',tail))
         print("\nMusic files moved to folder 'tempunsorted'")
 
 
@@ -37,18 +46,15 @@ def collectmus():
 # convert any m4a files to mp3 files so the id3 tags will be read properly
 def m4a2mp3():
         print("\nconverting all m4a files to mp3...")
-        quote = """ " """
-        q = quote[1]
         x = [file for r,d,f in os.walk(".") for file in f]
         filesremoved = []
         for i in x:
                 if i.endswith(".m4a"):
-                        #command = "avconv -i "+q+i+q+' '+q+i[:-4]+".mp3"+q
-                        altcommand = "ffmpeg -i "+q+i+q+' '+q+i[:-4]+".mp3"+q
+                        altcommand = f'ffmpeg -i "{i}" "{i[:-4]}.mp3"' 
+                        print(altcommand)
                         os.system(altcommand)
                         filesremoved.append(i)
-                        command2 = "mv "+i+" oldm4a"
-                        os.system(command2)
+                        shutil.move(i,'oldm4a') 
         print("The following files were converted to mp3:")
         for i in filesremoved:
                 print(i)
@@ -69,8 +75,7 @@ def titlechange():
                                 song = EasyID3(i)
                                 title = song['title']
                                 newtitle = title[0]+'.mp3'
-                                command = """mv %s "%s" """ % (i,newtitle)
-                                os.system(command)
+                                shutil.move(i, newtitle) 
                         except:
                                 errorlist.append(i)
 
@@ -82,8 +87,6 @@ def titlechange():
 
 
 def sortbyartist():
-        quote = """ " """
-        q = quote[1]    
         artistlist = []
         errorlist1 = []
         errorlist2 = []
@@ -99,16 +102,15 @@ def sortbyartist():
                         errorlist1.append(i)
 
         for i in artistlist:
-                command = "mkdir "+q+i[0]+q
-                os.system(command)
+                os.mkdir(i[0])
         for i in thelist:
                 try:
                         song = EasyID3(i)
                         artist = song['artist']
-                        command = "mv "+q+i+q+" "+q+artist[0]+q
-                        os.system(command)
+                        shutil.move(i, artist[0])
                 except:
                         errorlist2.append(i)
+
 
 
 
@@ -122,5 +124,5 @@ titlechange()
 
 sortbyartist()
 
-
 print("\n\nDone!")
+

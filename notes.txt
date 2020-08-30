@@ -1,0 +1,9 @@
+Windows executable compiled with pyinstaller via wine (Wine necessary because otherwise the program would be compiled to the Linux infrastructure)
+
+(Python needed to be downloaded*, then pip, then pip install of pyinstaller)
+
+example command for compiling sortmus.py (Performed in a "temp" folder within the main python folder because I don't know how Windows paths work in wine)
+
+`wine ../python.exe ../Scripts/pyinstaller.exe -F sortmus.py`
+
+* It actually didn't work for me when I downloaded it on my Ubuntu, I had instead downloaded it onto a Windows machine then transferred the folders containing python over)

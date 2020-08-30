@@ -2,6 +2,9 @@
 
 A program I wrote to finally convert all of those old "AQXZ.mp3" files retrieved from my old 3rd gen ipod to their actual name. After running this program, the music files are renamed to "songname.mp3" then all the songs are sorted into a folder by artist. Additionally, any m4a files are converted to mp3 (old m4a files are stored in a separate folder, so they are not deleted).
 
+UPDATE (30Aug2020):<br>
+Code has been updated to become more operating system neutral. I used this to compile a windows executable. [Windows Users](##-windows-users)
+
 Preview:
 
 ![A preview of the program in action](https://github.com/Tclack88/blog/blob/gh-pages/assets/music-sort/sorting.gif?raw=true)
@@ -34,4 +37,16 @@ Any m4a files are duplicated into an mp3 file and an original copy of the m4a fi
 The id3 tags are read and the songs renamed according to the artist in the tag
 
 ### Step 4
-The songs are iterated through and a list of unique artist names is created, a directory is created for each uniquly listed artist and the songs are then sorted into their respective directories.
+The songs are iterated through and a list of unique artist names is created, a directory is created for each uniquely listed artist and the songs are then sorted into their respective directories.
+
+## Windows Users
+An executable has been provided (sortmus.exe). You may download it, but it'll require a bit more work on your end. This code relies on a magical little program called ffmpeg. It will need to be downloaded separately then added to your path
+
+### 1
+Download ffmpeg and add it to your path. There are [good instructions here](https://www.thewindowsclub.com/how-to-install-ffmpeg-on-windows-10), no need to re-invent the wheel.
+
+### 2
+Download sortmus.exe then place it in your directory containing all the `F##` folders. (AVG flagged the program as potential Malware, so I had to make an exception. Sorry, it's not Malware, I just don't really know what the procedure is to make it appear "safe")
+
+### 3
+Double click the program, it should do everything for you. Note: Command prompt will pop up showing the progress and stages, unfortunately, it will close right after so you can't read it. It's really for me when I was developing, but if you're curious and want to see the output just in case something goes wrong, you can open up your command prompt, navigate to the correct location and run `sortmus.exe` from there. If you're feeling adventurous, [here's some instructions](https://www.wikihow.com/Run-an-EXE-File-From-Command-Prompt) for navigating the command prompt.
