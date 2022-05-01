@@ -90,13 +90,17 @@ def sortbyartist():
         for i in [s for s in thelist if s != "filenameerrors.txt"]:
                 try:
                         song = getsongobject(i)
-                        artist = re.sub(forbiddenregex, '', ''.join(song['artist'])).strip()
-                        if not os.path.isdir(artist):
-                                os.mkdir(artist)
-                        album = re.sub(forbiddenregex, '', ''.join(song['album'])).strip()
-                        artistalbum = artist + '/' + album
+                        artist = 'Unknown Artist'
+                        if 'artist' in song.keys():
+                                artist = re.sub(forbiddenregex, '', ''.join(song['artist'])).strip()
+
+                        album = 'Unknown Album'
+                        if 'album' in song.keys():
+                                album = re.sub(forbiddenregex, '', ''.join(song['album'])).strip()
+
+                        artistalbum = os.path.join(artist, album)
                         if not os.path.isdir(artistalbum):
-                                os.mkdir(artistalbum)
+                                os.makedirs(artistalbum)
                         shutil.move(i, artistalbum)
 
                 except: errorlist.append(i)
