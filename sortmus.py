@@ -3,6 +3,12 @@
 # A program I wrote to finally convert all of those old "AQXZ.mp3" files
 # retrieved from my old 3rd gen ipod to their actual name
 
+# 02 Feb 2022: update - removed dependency on ffmpeg to convert and instead 
+# read metadata from mp4-type files; also fixed a bug where some files would be
+# overwritten
+# 18 Sep 18 Update: Fixed some issues with initial file move causing files to get lost
+# Further Refinement with the title change and sort functions
+# Output list of files that could not have their title fixed to a text file for manual work 
 # 30 Aug 2020: update -- Code is now OS neutral. 
 # For windows without python installed/ for non-programers, an executable has 
 # been provided which has all it needs except for ffmpeg which will need to be 
@@ -23,93 +29,88 @@ import os
 import re
 import shutil
 from mutagen.easyid3 import EasyID3
+from mutagen.easymp4 import EasyMP4
+from mutagen.wave import WAVE
 
 
 # gather all the 'FGYZ.mp3' files into one folder: 'tempunsorted'
 
+forbiddenregex = re.compile('["*/:<>\?\\\|\+,.;=\[\]]') #based on https://en.wikipedia.org/wiki/Filename#Comparison_of_filename_limitations
 
 def collectmus():
         print("\n collecting music files...?")
         
-        os.makedirs("tempunsorted/oldm4a")
+        os.makedirs("tempunsorted")
         x = [os.path.join(r,file) for r,d,f in os.walk(".") for file in f]
         for i in x:
                 head, tail = os.path.split(i)
                 if re.match(r'^[A-Z]{4}',tail):
-                        os.rename(i,os.path.join('tempunsorted',tail))
+                        os.rename(i,os.path.join('tempunsorted',i[2:5] + tail))
         print("\nMusic files moved to folder 'tempunsorted'")
 
 
-
-
-
-# convert any m4a files to mp3 files so the id3 tags will be read properly
-def m4a2mp3():
-        print("\nconverting all m4a files to mp3...")
-        x = [file for r,d,f in os.walk(".") for file in f]
-        filesremoved = []
-        for i in x:
-                if i.endswith(".m4a"):
-                        altcommand = f'ffmpeg -i "{i}" "{i[:-4]}.mp3"' 
-                        print(altcommand)
-                        os.system(altcommand)
-                        filesremoved.append(i)
-                        shutil.move(i,'oldm4a') 
-        print("The following files were converted to mp3:")
-        for i in filesremoved:
-                print(i)
-        print("\nConversion Complete, m4a files moved to oldm4a folder")
-
-
-
-
+def getsongobject(file):
+        mp4_extensions = ["m4a", "m4p", "m4v"]
+        if any(file.endswith(ext) for ext in mp4_extensions):
+                songobject = EasyMP4(file)
+        elif file.endswith(".wav"):
+                songobject = WAVE(file)
+        else: #assumes other files are mp3
+                songobject = EasyID3(file)
+        return songobject
 
 
 # the main function which changes the name 
 def titlechange():
         thelist = os.listdir()
         errorlist = []
-        for i in thelist:
-                if re.match(r'^[A-Z]{4}[.mp3]{4}',i):
-                        try:
-                                song = EasyID3(i)
-                                title = song['title']
-                                newtitle = title[0]+'.mp3'
-                                shutil.move(i, newtitle) 
-                        except:
-                                errorlist.append(i)
+        for i in [s for s in thelist if re.match("^F[0-9]{2}[A-Z]{4}\.", s)]:
+                try:
+                        song = getsongobject(i)
+                        title = song['title']
+                        title = re.sub(forbiddenregex, '', title[0]).strip()
+                        newtitle = title+i[-4:] #assumes 3 char file extensions
+                        shutil.move(i, newtitle) 
+                except:
+                        errorlist.append(i)
+
+        if len(errorlist) > 0:
+                file = open('filenameerrors.txt','w')
+                file.write('File Name Errors: \n')
+                for i in errorlist:
+                        file.write(i + '\n')
+                file.close()
 
         return errorlist
 
 
-
-
-
-
 def sortbyartist():
-        artistlist = []
-        errorlist1 = []
-        errorlist2 = []
+        errorlist = []
         thelist = os.listdir()
-        for i in thelist:
+        for i in [s for s in thelist if s != "filenameerrors.txt"]:
                 try:
-                        song = EasyID3(i)
-                        artist = song['artist']
-                        if artist not in artistlist:
-                                artistlist.append(artist)
-                                
-                except:
-                        errorlist1.append(i)
+                        song = getsongobject(i)
+                        artist = 'Unknown Artist'
+                        if 'artist' in song.keys():
+                                artist = re.sub(forbiddenregex, '', ''.join(song['artist'])).strip()
 
-        for i in artistlist:
-                os.mkdir(i[0])
-        for i in thelist:
-                try:
-                        song = EasyID3(i)
-                        artist = song['artist']
-                        shutil.move(i, artist[0])
-                except:
-                        errorlist2.append(i)
+                        album = 'Unknown Album'
+                        if 'album' in song.keys():
+                                album = re.sub(forbiddenregex, '', ''.join(song['album'])).strip()
+
+                        artistalbum = os.path.join(artist, album)
+                        if not os.path.isdir(artistalbum):
+                                os.makedirs(artistalbum)
+                        shutil.move(i, artistalbum)
+
+                except: errorlist.append(i)
+
+        if len(errorlist) > 0:
+                file = open('filemoveerrors.txt','w')
+                file.write('File Move Errors: \n')
+                for i in errorlist:
+                        file.write(i + '\n')
+                file.close()
 
 
 
@@ -118,11 +119,8 @@ collectmus()
 
 os.chdir('tempunsorted')
 
-m4a2mp3()
-
 titlechange()
 
 sortbyartist()
 
 print("\n\nDone!")
-
